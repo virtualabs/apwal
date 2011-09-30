@@ -6,8 +6,8 @@ import base64
 from Cookie import SimpleCookie
 from pprint import pformat
 from urllib import urlencode, quote
-from pywa.core.utils import MultiValueDict,parse_cookie,QueryDict
-from pywa.core.settings import Settings
+from apwal.core.utils import MultiValueDict,parse_cookie,QueryDict
+from apwal.core.settings import Settings
 
 __all__ = [
 	'HttpRequest',
