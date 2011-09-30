@@ -6,12 +6,13 @@ import base64
 from Cookie import SimpleCookie
 from pprint import pformat
 from urllib import urlencode, quote
-from pywa.core.utils import MultiValueDict,parse_cookie,QueryDict
-from pywa.core.settings import Settings
+from apwal.core.utils import MultiValueDict,parse_cookie,QueryDict
+from apwal.core.settings import Settings
 
 __all__ = [
 	'HttpRequest',
 	'HttpResponse',
+	'HttpPlainText',
 	'parse_file_upload',
 	'HttpResponseRedirect',
 	'HttpResponsePermanentRedirect',
@@ -93,10 +94,9 @@ def parse_file_upload(header_dict, post_data):
 class HttpResponse(object):
     "A basic HTTP response, with content and dictionary-accessed headers"
     def __init__(self, content='', mimetype=None):
-        from cat.conf import settings
-        self._charset = settings.DEFAULT_CHARSET
+        self._charset = Settings.globals['default_charset']
         if not mimetype:
-            mimetype = "%s; charset=%s" % (settings.DEFAULT_CONTENT_TYPE, settings.DEFAULT_CHARSET)
+            mimetype = "%s; charset=%s" % (Settings.globals['default_mime'], Settings.globals['default_charset'])
         if not isinstance(content, basestring) and hasattr(content, '__iter__'):
             self._container = content
             self._is_string = False
@@ -189,6 +189,11 @@ class HttpResponse(object):
         if not self._is_string:
             raise Exception, "This %s instance cannot tell its position" % self.__class__
         return sum([len(chunk) for chunk in self._container])
+
+class HttpPlainText(HttpResponse):
+	def __init__(self, content):
+		HttpResponse.__init__(self, content, 'text/plain')
+		self.status_code = 200
 
 class HttpResponseRedirect(HttpResponse):
     def __init__(self, redirect_to):
