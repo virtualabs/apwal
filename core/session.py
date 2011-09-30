@@ -1,6 +1,6 @@
 import os, time, datetime, random, base64, uuid, re
-from pywa.core.utils import ThreadDict
-from pywa.core.settings import Settings
+from apwal.core.utils import ThreadDict
+from apwal.core.settings import Settings
 
 ## Imports
 
