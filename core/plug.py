@@ -1,5 +1,5 @@
 import re
-from pywa.core.utils import DebugMsg
+from apwal.core.utils import DebugMsg
 
 __all__ = [
 	'Pluggable',
@@ -59,7 +59,6 @@ class Pluggable:
 		if len(url)>0:
 			if url[-1]=='/':
 				url=url[:-1]
-		#print 'trimmed: %s' % url
 		return url
 
 	def __convert_dynurl(self, url):

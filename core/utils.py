@@ -1,4 +1,6 @@
 from threading import local
+from imp import find_module,load_module
+
 try:
     # The mod_python version is more efficient, so try importing it first.
     from mod_python.util import parse_qsl
@@ -12,6 +14,7 @@ __all__ = [
 	'MultiValueDict',
 	'QueryDict',
 	'parse_cookie',
+	'load_tool',
 ]
 
 class ThreadStorage(object):
@@ -267,8 +270,8 @@ class DotDict(object):
 	"""
 	Dict with dottable items (e.g. t.a => t['a']
 	"""
-	def __init__(self):
-		self.items = {}
+	def __init__(self,items={}):
+		self.items = items
 	def __getattr__(self, attr):
 		try:
 			return self[attr]
@@ -305,3 +308,23 @@ class DebugMsg(Exception):
 		return self.msg
 	def __str__(self):
 		return self.msg
+		
+
+def load_tool(tool_name):
+	parts = tool_name.split('.')
+	deep = 0
+	x = None
+	p = None
+	if len(parts)>0:
+		while deep<len(parts):
+			# first try to find the part
+			a,b,c = find_module(parts[deep],p)
+			# if found, load module
+			x = load_module(parts[deep],a,b,c)
+			deep += 1
+			if deep<len(parts):
+				p = x.__path__
+			print p
+		return x
+	else:
+		raise ImportError()
