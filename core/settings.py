@@ -1,17 +1,20 @@
 from xml.dom.minidom import parse
-from pywa.core.utils import DebugMsg,DotDict
+from apwal.core.utils import DebugMsg,DotDict
 
 class Settings:
 	"""
 	Settings object
 	"""
 
+
 	globals = DotDict({
-		'sessions_mode':None,
+		'sessions_mod':None,
 		'sessions_root':'/tmp/',
-		'sessions_timeout':24*3600*1000
+		'sessions_timeout':24*3600*1000,
+		'default_charset':'utf-8',
+		'default_mime':'text/html',
 	})
-	
+
 	def __init__(self):
 		self.vhosts = {}
 		self.session_store = None
@@ -70,6 +73,7 @@ class SettingsLoader:
 			if vhost_name:
 				# get vhost plugs and associated routes
 				vhost_plugs = []
+				vhost_tools = []
 				plugs = vhost.getElementsByTagName('plug')
 				for plug in plugs:
 					plug_src = plug.getAttribute('src')
@@ -87,5 +91,5 @@ class SettingsLoader:
 		return self.settings
 
 if __name__ == '__main__':
-	settings_loader = SettingsLoader('/var/www/pywa/config.xml')
+	settings_loader = SettingsLoader('/var/www/apwal/config.xml')
 		
