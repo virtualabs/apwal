@@ -9,18 +9,18 @@ try:
 	from mod_python import apache, Session
 except ImportError,e:
 	pass
-from pywa.core.settings import SettingsLoader
-from pywa.core.helpers import is_handler
-from pywa.core.http import ModPythonRequest,HttpRequest, HttpResponse, Http404, WSGIRequest
-from pywa.core.utils import DebugMsg
+from apwal.core.settings import SettingsLoader
+from apwal.core.helpers import is_handler
+from apwal.core.http import ModPythonRequest,HttpRequest, HttpResponse, Http404, WSGIRequest
+from apwal.core.utils import DebugMsg
 
 __all__ = [
-	'PywaDispatcher',
+	'ApwalDispatcher',
 	'handler',
 	'WSGIHandler',
 ]
 
-class PywaDispatcher:
+class ApwalDispatcher:
 
 	def __init__(self, req):
 		self.req = req
@@ -99,7 +99,7 @@ def handler(req):
 
 class WSGIHandler(object):
 	def __call__(self, environ, start_response):
-		self._handler = PywaDispatcher(WSGIRequest(environ))
+		self._handler = ApwalDispatcher(WSGIRequest(environ))
 		response = self._handler.route()
 		try:
 			if response:

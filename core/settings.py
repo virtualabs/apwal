@@ -87,5 +87,5 @@ class SettingsLoader:
 		return self.settings
 
 if __name__ == '__main__':
-	settings_loader = SettingsLoader('/var/www/pywa/config.xml')
+	settings_loader = SettingsLoader('/var/www/apwal/config.xml')
 		

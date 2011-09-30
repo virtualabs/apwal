@@ -1,5 +1,5 @@
 import re
-from pywa.core.utils import DebugMsg
+from apwal.core.utils import DebugMsg
 
 __all__ = [
 	'Pluggable',
