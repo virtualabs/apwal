@@ -23,51 +23,6 @@ class bind:
 		f.url = self.url
 		return f
 
-class Medias:
-	"""
-	Media directory and allowed extensions container
-	"""
-	def __init__(self, mediaDir, mediaTypes):
-		if type(mediaTypes) is StrType:
-			self.__media_types = [mediaTypes.upper()]
-		elif type(mediaTypes) is ListType:
-			self.__media_types = [mt.upper() for mt in mediaTypes]
-		else:
-			raise TypeError()
-		self.__media_dir = mediaDir
-		
-	def getMediaDir(self):
-		"""
-		Retrieve media directory
-		"""
-		return self.__media_dir
-		
-	def getMediaTypes(self):
-		"""
-		Retrieve allowed media types (ext)
-		"""
-		return self.__media_types
-		
-	def isMediaTypeAllowed(self, mediaType):
-		"""
-		Check if a media type is allowed
-		"""
-		return (mediaType in self.__media_types)
-
-
-class media:
-	"""
-	Decorates a method in order to associate a relative media directory and associated media types
-	"""
-	def __init__(self, relativeMediaDir, mediaTypes=None):
-		"""
-		Specify the media directory and allowed media types
-		"""		
-		self.__medias = Medias(relativeMediaDir, mediaTypes)
-		
-	def __call__(self, f):
-		f.medias = self.__medias
-		return f
 
 class plug:
 	def __init__(self, *kargs):
