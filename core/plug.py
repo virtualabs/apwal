@@ -129,5 +129,6 @@ class Pluggable:
 				else:
 					response = method()
 				return True,response
+		
 		return False,None
 
