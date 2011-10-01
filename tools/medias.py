@@ -1,7 +1,8 @@
 import os
 import mimetypes
 from apwal import *
-from apwal.http import HttpResponse,HttpResponseForbidden,HttpResponseNotFound
+from apwal.core.exceptions import FileNotFound,ExternalRedirect
+from apwal.http import HttpResponse
 
 @main
 class MediaServer(Pluggable):
@@ -25,10 +26,13 @@ class MediaServer(Pluggable):
 					if ext[1:] in exts:
 						return HttpResponse(open(f,'rb').read(),mt)
 					else:
-						return HttpResponseNotFound()
+						# delegate to 404 handler
+						raise FileNotFound()
 				else:
 					return HttpResponse(open(f,'rb').read(),mt)
 			else:
-				return HttpResponseNotFound()
+				# delegate to 404 handler
+				raise FileNotFound()
 		else:
-			return HttpResponseNotFound()
+			# delegate to 404 handler
+			raise FileNotFound()
