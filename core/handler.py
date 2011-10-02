@@ -1,6 +1,8 @@
 #!/usr/bin/python
+#-*- coding:utf-8 -*-
 
 import re
+import traceback
 import sys
 import os
 from imp import find_module, load_module
@@ -23,12 +25,12 @@ __all__ = [
 
 class ApwalDispatcher:
 
-	def __init__(self, req):
+	def __init__(self, req,config_file='config.xml'):
 		self.req = req
 		self.__wwwroot = self.req.document_root()
 		self.vhosts = {}
 		self.error_handlers = {}
-		self.__read_config(os.path.join(self.__wwwroot,'config.xml'))
+		self.__read_config(os.path.join(self.__wwwroot,config_file))
 		self.__load_pluggables()
 	
 	def __read_config(self, cfg_file):
@@ -127,12 +129,16 @@ def handler(req):
 		return apache.OK
 
 class WSGIHandler(object):
+
+	def __init__(self, configFile=None):
+		self.__config = configFile
+	
 	"""
 	Apache mod_wsgi dedicated handler
 	"""
 	def __call__(self, environ, start_response):
 		try:
-			self._handler = ApwalDispatcher(WSGIRequest(environ))
+			self._handler = ApwalDispatcher(WSGIRequest(environ),config_file=self.__config)
 			response = self._handler.route()
 			if response:
 				start_response(str(response.status_code)+' WSGI-GENERATED', response.headers.items())
@@ -163,4 +169,4 @@ class WSGIHandler(object):
 				return [response.content]
 			else:
 				start_response("500 SERVER ERROR",[('Content-Type','text/plain')])
-				return ['Internal server error: %s'%e]
+				return ['Internal server error: %s'%(e)]
