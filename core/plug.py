@@ -28,10 +28,10 @@ class Pluggable:
 		"""
 		# if base url defined then clean it
 		if route:
-			self.__route = self.__trim_url(route,first=False)
+			self.route = self.__trim_url(route,first=False)
 		else:
 			# otherwise no base ('/' by default)
-			self.__route = ''
+			self.route = ''
 		self.params = params
 		self.request = request
 		self.__pluggables = []
@@ -91,7 +91,7 @@ class Pluggable:
 		# map pluggable bound methods into our module
 		for route,method in pluggable.getBoundMethods():
 			#print '-> %s' % (self.__url+'/'+self.__trim_url(url))
-			self.__methods.append((self.__route+'/'+self.__trim_url(route),method))
+			self.__methods.append((self.route+'/'+self.__trim_url(route),method))
 		
 	def __map_methods(self):
 		"""
@@ -102,8 +102,8 @@ class Pluggable:
 		for child in dir(self):
 			m = getattr(self,child)
 			if 'url' in dir(m) and callable(m):
-				if len(self.__route)>0:
-					self.__methods.append((self.__convert_dynurl(self.__route+'/'+self.__trim_url(m.url)),m))
+				if len(self.route)>0:
+					self.__methods.append((self.__convert_dynurl(self.route+'/'+self.__trim_url(m.url)),m))
 				else:
 					self.__methods.append((self.__convert_dynurl('/'+self.__trim_url(m.url)),m))
 			if hasattr(m, 'onerror') and callable(m):
@@ -129,5 +129,6 @@ class Pluggable:
 				else:
 					response = method()
 				return True,response
+		
 		return False,None
 

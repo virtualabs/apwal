@@ -1,6 +1,8 @@
 #!/usr/bin/python
+#-*- coding:utf-8 -*-
 
 import re
+import traceback
 import sys
 import os
 from imp import find_module, load_module
@@ -9,6 +11,7 @@ try:
 	from mod_python import apache, Session
 except ImportError,e:
 	pass
+from apwal.core.exceptions import *
 from apwal.core.settings import SettingsLoader
 from apwal.core.helpers import is_handler
 from apwal.http import ModPythonRequest,HttpRequest, HttpResponse, Http404, WSGIRequest
@@ -22,12 +25,12 @@ __all__ = [
 
 class ApwalDispatcher:
 
-	def __init__(self, req):
+	def __init__(self, req,config_file='config.xml'):
 		self.req = req
 		self.__wwwroot = self.req.document_root()
 		self.vhosts = {}
 		self.error_handlers = {}
-		self.__read_config(os.path.join(self.__wwwroot,'config.xml'))
+		self.__read_config(os.path.join(self.__wwwroot,config_file))
 		self.__load_pluggables()
 	
 	def __read_config(self, cfg_file):
@@ -74,12 +77,13 @@ class ApwalDispatcher:
 					pass
 
 					
-	def route(self):
+	def route(self, uri=None):
 		"""
 		Route request throughout defined URIs
 		"""
 		vhost = self.req.hostname
-		uri = self.req.uri
+		if uri is None:
+			uri = self.req.uri
 		if vhost in self.vhosts:
 			for plug in self.vhosts[vhost]:
 				status,response = plug.findRoute(uri)
@@ -109,6 +113,9 @@ class ApwalDispatcher:
 		return None
 		
 def handler(req):
+	"""
+	Apache's mod_python handler
+	"""
 	_handler = PywaDispatcher(req)
 	response = _handler.route()
 	if response:
@@ -122,10 +129,17 @@ def handler(req):
 		return apache.OK
 
 class WSGIHandler(object):
+
+	def __init__(self, configFile=None):
+		self.__config = configFile
+	
+	"""
+	Apache mod_wsgi dedicated handler
+	"""
 	def __call__(self, environ, start_response):
-		self._handler = ApwalDispatcher(WSGIRequest(environ))
-		response = self._handler.route()
 		try:
+			self._handler = ApwalDispatcher(WSGIRequest(environ),config_file=self.__config)
+			response = self._handler.route()
 			if response:
 				start_response(str(response.status_code)+' WSGI-GENERATED', response.headers.items())
 				return [response.content]
@@ -135,8 +149,19 @@ class WSGIHandler(object):
 					start_response(str(response.status_code)+' NOT FOUND', response.headers.items())
 					return [response.content]
 				else:
+					raise FileNotFound()
+		except FileNotFound,e:
+				if self._handler.hasErrorHandler(404):
+					response = self._handler.route_error(404)
+					start_response(str(response.status_code)+' NOT FOUND', response.headers.items())
+					return [response.content]
+				else:
 					start_response("404 NOT FOUND",[('Content-Type','text/plain')])
-					return ['Object not found']
+					return ['Object not found']	
+		except InternalRedirect,e:
+			return self._handler.route(e.getDestination())
+		except ExternalRedirect,e:
+			return HttpResponseRedirect(e.getDestination())
 		except Exception,e:
 			if self._handler.hasErrorHandler(500):
 				response = self._handler.route_error(500)
@@ -144,4 +169,4 @@ class WSGIHandler(object):
 				return [response.content]
 			else:
 				start_response("500 SERVER ERROR",[('Content-Type','text/plain')])
-				return ['Internal server error: %s'%e]
+				return ['Internal server error: %s'%(e)]

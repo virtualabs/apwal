@@ -1,0 +1,180 @@
+APWAL Little HowTo
+------------------
+
+  0. Introduction
+
+Apwal (Another Python Web Application Layer) is a new web framework
+written in Python. The idea behind APWAL is to provide a framework
+easy to use and extremely flexible, unlike Django or CherryPy.
+
+Something I strongly hate about python web frameworks is the fact
+you must write your application code into one single file (well, a
+single file where you put your endpoints - i.e methods that would be
+called through the web framework) and it is not a clean way to code.
+
+I developed my own little web framework in python in such a way it is
+easy to cut a project into multiple python modules and glue everything
+easily thanks to an xml file and python decorators. It is intended to
+work both with Apache+mod_python and Apache+mod_wsgi. In this How To
+I'll describe the mod_wsgi way to deploy it, since mod_python is no
+longer maintained.
+
+
+  1. Installation
+
+Apwal is still in development, there is no installer at the moment.
+To deploy this framework in order to try it (ofc you should not use
+it as a full-featured production web framework...), copy the entire
+source in the 'dist-packages' directory of your python 2.6 distrib,
+under a 'apwal' directory.
+
+Once done, Apwal is ready to operate. Let's configure Apache. 
+Apwal requires mod_wsgi for Apache, so install it with your
+favorite package manager and enable this module. Once done,
+we are going to set up a test environment. Create a root
+directory (i.e. /var/www/apwal/) in order to host the files,
+and create a dedicated vhost configuration file.
+
+Here is my test environment (Apache virtual-host config file):
+
+
+--------------->8---------------->8-------< cut here>
+NameVirtualHost *:80
+<VirtualHost *:80>
+	ServerName localhost
+	DocumentRoot /var/www/apwal/
+	<Directory /var/www/apwal/>
+		Order allow,deny
+		Allow from all
+	</Directory>
+
+	WSGIScriptAlias / /var/www/apwal/test.wsgi
+	
+</VirtualHost>
+--------------->8---------------->8-------< cut here>
+
+With the test.wsgi file: 
+
+--------------->8---------------->8-------< cut here>
+from apwal.core.handler import WSGIHandler
+
+application = WSGIHandler()
+--------------->8---------------->8-------< cut here>
+
+
+Allright, Apache and mod_wsgi are ready to go. Now the tricky part:
+our test application. Let's start with a great classic, an "Hello World".
+
+  2. Hello World
+
+An application is very easy to implement. Have a look at this:
+
+
+--------------->8---------------->8-------< cut here>
+from apwal.core.plug import Pluggable,bind,plug,handler
+from apwal.http import HttpResponse
+
+
+@main
+class HelloWorld(Pluggable):
+
+	@bind('/')
+	def say_hello(self):
+		return HttpResponse('Hello World !')
+--------------->8---------------->8-------< cut here>
+
+The @main decorator indicates that the decorated class is the main
+program class. The class inheritates from 'Pluggable', because
+everything is pluggable for Apwal.
+
+Save this file as test.py (under www root dir), and create a new 'config.xml'
+file in the www root directory. This file is the main configuration file, 
+used by the framework to know how to handle every HTTP request.
+
+Here is a sample config.xml file:
+
+--------------->8---------------->8-------< cut here>
+<vhost name="localhost">
+	<plug src="test" route="/"/>
+</vhost>
+--------------->8---------------->8-------< cut here>
+
+
+This config.xml file defines one or more virtual-hosts (well, apwal
+can manage multiple virtual hosts), and for each vhost plugs
+one or more "pluggables" with a given "route". 
+
+The previous config.xml tells Apwal to load an instance of the module 'test'
+and to map it to the virtual uri '/' (the web root). That means when someone
+will be requesting the '/', say_hello will be called to generate the result.
+
+And you can re-plug your pluggable everywhere you want to:
+
+--------------->8---------------->8-------< cut here>
+<vhost name="localhost">
+	<plug src="test" route="/"/>
+	<plug src="test" route="/foo"/>
+	<plug src="test" route="/bar"/>
+</vhost>
+--------------->8---------------->8-------< cut here>
+
+If you are using this config.xml file, the web application will say 'Hello World'
+for many URIs (/, /foo and /bar). 
+
+  3. Rewriting
+
+Furthermore, you can also defined regexp with
+the @bind decorator in order to catch parameters right from the URI, a kind of
+rewriting handled by the web framework:
+
+--------------->8---------------->8-------< cut here>
+from apwal.core.plug import Pluggable,bind,plug,handler
+from apwal.http import HttpResponse
+
+
+@main
+class HelloWorld(Pluggable):
+
+	@bind('/{name:([a-zA-Z0-9]+)}')
+	def say_hello(self, urlparams):
+		return HttpResponse('Hello %s !' % urlparams['name'])
+--------------->8---------------->8-------< cut here>
+
+In this case, if the URI matches the specified regexp then the parameter
+'name' is automatically extracted and provided to the method. It is now
+easy to parse URIs and to filter out what kind of data an URI can accept.
+
+
+  4. Parametrized application modules
+
+You can also map a module and provide some parameters, for instance if you
+want to deal with static images coming from a given directory without
+directly expose it:
+
+--------------->8---------------->8-------< cut here>
+<vhost name="localhost">
+	<plug src="main" route="/" />
+	<plug src="apwal.tools.medias" route="/images">
+		<param name="directory" value="/var/www/apwal/images/"/>
+	</plug>
+</vhost>
+--------------->8---------------->8-------< cut here>
+
+By doing this, apwal will handle automatically any kind of medias stored
+in /var/www/apwal/images. Have a look at tools/medias.py for more info
+on the internals.
+Note that you can filter the extensions by using another param:
+
+<param name="allow" value="png,jpg,gif"/>
+
+You can set as many parameters as you want to set, and use it from 
+pluggables by getting them with the 'params' properties. 
+
+
+  5. Some words
+
+This little framework is not an alpha version nor a beta version and is still
+at an early stage of development. If you have any questions about its internals,
+how to test it, or why not how to contribute to this framework, please send an
+email to virtualabs -at- gmail -dot- com ;). Hope this helps. 
+

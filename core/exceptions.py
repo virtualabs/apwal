@@ -1,25 +1,29 @@
-"Global Cat exceptions"
+"""
+Apwal common exceptions
+"""
 
-class ObjectDoesNotExist(Exception):
-    "The requested object does not exist"
-    silent_variable_failure = True
+class FileNotFound(Exception):
+	"""
+	File not found exception
+	"""
+	pass
 
-class SuspiciousOperation(Exception):
-    "The user did something suspicious"
-    pass
+class InternalRedirect(Exception):
+	"""
+	Internal redirect
+	"""
+	def __init__(self, destination):
+		Exception.__init__(self)
+		self.redirect_to = destination
+	
+	def getDestination(self):
+		return self.redirect_to
 
-class PermissionDenied(Exception):
-    "The user did not have permission to do that"
-    pass
+class ExternalRedirect(InternalRedirect):
+	"""
+	External redirect
+	"""
+	pass
 
-class ViewDoesNotExist(Exception):
-    "The requested view does not exist"
-    pass
-
-class MiddlewareNotUsed(Exception):
-    "This middleware is not used in this server configuration"
-    pass
-
-class ImproperlyConfigured(Exception):
-    "Django is somehow improperly configured"
-    pass
+class ForbiddenAccess(Exception):
+	pass
