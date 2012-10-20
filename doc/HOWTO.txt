@@ -71,7 +71,7 @@ An application is very easy to implement. Have a look at this:
 
 
 --------------->8---------------->8-------< cut here>
-from apwal.core.plug import Pluggable,bind,plug,handler
+from apwal import *
 from apwal.http import HttpResponse
 
 
@@ -95,7 +95,7 @@ Here is a sample config.xml file:
 
 --------------->8---------------->8-------< cut here>
 <vhost name="localhost">
-	<plug src="test" route="/"/>
+	<plug src="test" route="/" />
 </vhost>
 --------------->8---------------->8-------< cut here>
 
@@ -123,12 +123,12 @@ for many URIs (/, /foo and /bar).
 
   3. Rewriting
 
-Furthermore, you can also defined regexp with
+Furthermore, you can also define regexps with
 the @bind decorator in order to catch parameters right from the URI, a kind of
 rewriting handled by the web framework:
 
 --------------->8---------------->8-------< cut here>
-from apwal.core.plug import Pluggable,bind,plug,handler
+from apwal import *
 from apwal.http import HttpResponse
 
 
